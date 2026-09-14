@@ -36,7 +36,7 @@ clima_atual = {
 # ==========================================
 
 def salvar_foto_com_metadados(raw_jpeg_bytes, caminho):
-    """Salva os bytes da imagem e injeta o EXIF sem precisar do OpenCV/PIL."""
+    """Salva os bytes da imagem, injeta o EXIF e imprime os dados climáticos atuais."""
     
     # 1. Salva o JPEG puro direto no disco
     with open(caminho, 'wb') as f:
@@ -62,11 +62,14 @@ def salvar_foto_com_metadados(raw_jpeg_bytes, caminho):
         }
     }
     
-    # 3. Injeta o EXIF diretamente no arquivo já salvo (0 consumo de RAM de vídeo)
+    # 3. Injeta o EXIF diretamente no arquivo já salvo
     try:
         exif_bytes = piexif.dump(exif_dict)
         piexif.insert(exif_bytes, caminho)
-        print(f"✅ Foto salva com metadados em: {caminho}")
+        
+        # Imprime o log formatado com o arquivo e os estados atuais dos sensores
+        print(f"✅ Foto salva: {caminho} | 🌡️ Temp: {clima_atual['temperatura']}°C | 💧 Umidade: {clima_atual['umidade']}% | ☀️ Lux: {clima_atual['luminosidade']} | 💨 Umidificador: {clima_atual['umidificador']}")
+        
     except Exception as e:
         print(f"⚠️ Erro ao injetar metadados EXIF: {e}")
 
@@ -117,6 +120,9 @@ def receber_sensores():
     
     if 'umidade_ar' in dados:
         clima_atual['umidade'] = round(dados['umidade_ar'], 1)
+
+    if 'luminosidade' in dados:
+        clima_atual['luminosidade'] = dados['luminosidade']
 
     if 'umidificador' in dados:
         clima_atual['umidificador'] = dados['umidificador']
